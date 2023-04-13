@@ -1,5 +1,6 @@
 import math
-
+import pandas as pd
+import matplotlib.pyplot as plt
 
 
 
@@ -42,8 +43,6 @@ def solar_panels_power_average(): # sun_angle in radians
 #####################################
 
 
-import pandas as pd
-
 def importation(file_link):
     df = pd.read_csv(file_link, index_col = False)
     return df
@@ -77,12 +76,16 @@ df_eclipse = importation("Eclipse_data.csv")
 current_eclipse = get_eclipse(df_eclipse, 0)
 battery_charge = Start_battery_level * Battery_capacity_max
 
-for t in range(Run_time):
+time = range(Run_time)
+Bat_charge = [battery_charge]
+
+for t in time[1:]:
 
     ### Battery input 
     # Solar power
     if t > current_eclipse.end: # Update the eclipse if it has ended
         current_eclipse = get_eclipse(df_eclipse, current_eclipse.number+1)
+        print(current_eclipse.start)
     if t > current_eclipse.start and t < current_eclipse.end:
         solar_power = 0
     else:
@@ -94,17 +97,25 @@ for t in range(Run_time):
     ### Battery Output
     # Load power need
     # TODO real load calculation
-    load_power_need = 8
+    load_power_need = 7.5
 
     # Battery Output
     battery_Output = load_power_need / output_efficiency(load_power_need / 5) # We assume that the load use only 5V for max efficiency
     battery_Output += 0.115 # Power consumption of the P31u
+
     ### Battery state
-    # TODO simulate loss of capacity
+    # TODO simulate loss of capacity and battery management considering degradation
     battery_change = battery_Input - battery_Output
     if battery_charge < -battery_change :
         raise Exception(t)
     battery_charge = min(battery_charge + battery_change , Battery_capacity_max)
-    print(battery_charge)
 
-    
+    ###
+    Bat_charge.append(battery_charge)
+
+plt.plot(time,Bat_charge)
+plt.title("Battery charge over time")
+plt.xlabel("time (in second)")
+plt.ylabel("Battery charge")
+plt.ylim(0,Battery_capacity_max)
+plt.show()
