@@ -37,7 +37,7 @@ Solar_irradiance = 1361 # W/m²
 
 def solar_panels_power_average(): # sun_angle in radians
     panels_surface = Number_of_Solar_Panel * Solar_Panel_surface
-    return Solar_irradiance * panels_surface * Solar_Panel_efficiency * (math.pi / 2) / 4
+    return Solar_irradiance * panels_surface * Solar_Panel_efficiency * (math.pi / 2) / 4 #Calculated for uncontrolled sattelite
 
 #####################################
 #####################################
@@ -97,7 +97,7 @@ for t in time[1:]:
     ### Battery Output
     # Load power need
     # TODO real load calculation
-    load_power_need = 7.5
+    load_power_need = 7.6
 
     # Battery Output
     battery_Output = load_power_need / output_efficiency(load_power_need / 5) # We assume that the load use only 5V for max efficiency
