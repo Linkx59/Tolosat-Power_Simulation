@@ -1,0 +1,15 @@
+Solar panel degradation is fine for at least 8 years;
+Fluence doesn't take into account the orientation of the solar panel
+
+Things to do:
+- Thermal impacts on solar panel efficiency
+- Thermal impacts on battery
+- charge and discharge impacts on battery
+
+-Real output of power
+
+
+
+
+Info:
+1 Battery charge cycle is the equivalent of discharging it fully and recharging it fully even if it is in multiple use. Example 100% -> 50% -> 100% -> 50% -> 100% is one cycle

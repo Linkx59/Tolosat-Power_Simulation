@@ -3,7 +3,6 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 
-
 #######################################################################
 # Input efficiency
 
@@ -27,17 +26,23 @@ def output_efficiency(output_current):
 # Solar generation
 
 
-Number_of_Solar_Panel = 12
+Number_of_Solar_Panel = 12 # module
 Solar_Panel_branch_OptiVoltage = 4.74 * 3 # (+/- 0.1) V
 Solar_Panel_branch_OptiCurrent = 0.499 # (+/- 9mA) A
-Solar_Panel_efficiency = 0.3
-Solar_Panel_surface = 0.006036 # m² just one panel
+Solar_Panel_efficiency_BOL = 0.3
+Solar_Panel_surface = 0.006036 # m² per module
 
 Solar_irradiance = 1361 # W/m²
 
-def solar_panels_power_average(): # sun_angle in radians
+
+def solar_panel_efficiency(time): # Power in Joule
+    return Solar_Panel_efficiency_BOL - 0.009 * (1.43 * 10**13) / (2.5 * 10**14) * (t / 31556926)
+
+def solar_panels_power_average(t):
     panels_surface = Number_of_Solar_Panel * Solar_Panel_surface
-    return Solar_irradiance * panels_surface * Solar_Panel_efficiency * (math.pi / 2) / 4 #Calculated for uncontrolled sattelite
+    power_average_before_efficiency = Solar_irradiance * panels_surface * (math.pi / 2) / 4 #Calculated for uncontrolled sattelite
+    power_average_with_efficiency = power_average_before_efficiency * solar_panel_efficiency(t)
+    return power_average_with_efficiency
 
 #####################################
 #####################################
@@ -69,7 +74,7 @@ Battery_capacity_max = 4 * 3.7 * 2.6 * 3600 # in Ws
 
 ###############
 Start_battery_level = 1 # In percent
-Run_time = 100000 # in seconds
+Run_time = 35000000 # in seconds
 df_eclipse = importation("Eclipse_data.csv")
 
 
@@ -79,17 +84,17 @@ battery_charge = Start_battery_level * Battery_capacity_max
 time = range(Run_time)
 Bat_charge = [battery_charge]
 
-for t in time[1:]:
 
+for t in time[1:]:
+    print(t)
     ### Battery input 
     # Solar power
     if t > current_eclipse.end: # Update the eclipse if it has ended
         current_eclipse = get_eclipse(df_eclipse, current_eclipse.number+1)
-        print(current_eclipse.start)
     if t > current_eclipse.start and t < current_eclipse.end:
         solar_power = 0
     else:
-        solar_power = solar_panels_power_average()
+        solar_power= solar_panels_power_average(t)
     
     # Battery input
     battery_Input = solar_power * input_efficiency(solar_power)
@@ -97,7 +102,7 @@ for t in time[1:]:
     ### Battery Output
     # Load power need
     # TODO real load calculation
-    load_power_need = 7.6
+    load_power_need = 7.55
 
     # Battery Output
     battery_Output = load_power_need / output_efficiency(load_power_need / 5) # We assume that the load use only 5V for max efficiency
@@ -107,12 +112,19 @@ for t in time[1:]:
     # TODO simulate loss of capacity and battery management considering degradation
     battery_change = battery_Input - battery_Output
     if battery_charge < -battery_change :
-        raise Exception(t)
+        raise Exception(f"Flat battery at {t}")
     battery_charge = min(battery_charge + battery_change , Battery_capacity_max)
 
     ###
     Bat_charge.append(battery_charge)
 
+    if t == 10000000 or t == 20000000:
+        plt.plot(range(len(Bat_charge)),Bat_charge)
+        plt.show()
+
+
+fig = plt.figure()
+plt.subplot(2,1,1)
 plt.plot(time,Bat_charge)
 plt.title("Battery charge over time")
 plt.xlabel("time (in second)")
