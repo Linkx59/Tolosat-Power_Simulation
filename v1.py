@@ -40,7 +40,7 @@ def solar_panel_efficiency(time): # Power in Joule
 
 def solar_panels_power_average(t):
     panels_surface = Number_of_Solar_Panel * Solar_Panel_surface
-    power_average_before_efficiency = Solar_irradiance * panels_surface * (math.pi / 2) / 4 #Calculated for uncontrolled sattelite
+    power_average_before_efficiency = Solar_irradiance * panels_surface # Best case scenario : solar panel pointing straight at the sun
     power_average_with_efficiency = power_average_before_efficiency * solar_panel_efficiency(t)
     return power_average_with_efficiency
 
@@ -74,7 +74,7 @@ Battery_capacity_max = 4 * 3.7 * 2.6 * 3600 # in Ws
 
 ###############
 Start_battery_level = 1 # In percent
-Run_time = 35000000 # in seconds
+Run_time = 1000000 # in seconds
 df_eclipse = importation("Eclipse_data.csv")
 
 
@@ -88,7 +88,7 @@ Bat_charge = [battery_charge]
 for t in time[1:]:
     print(t)
     ### Battery input 
-    # Solar power
+    # Solar power available
     if t > current_eclipse.end: # Update the eclipse if it has ended
         current_eclipse = get_eclipse(df_eclipse, current_eclipse.number+1)
     if t > current_eclipse.start and t < current_eclipse.end:
@@ -96,7 +96,7 @@ for t in time[1:]:
     else:
         solar_power= solar_panels_power_average(t)
     
-    # Battery input
+    # Battery input available
     battery_Input = solar_power * input_efficiency(solar_power)
 
     ### Battery Output
@@ -111,16 +111,13 @@ for t in time[1:]:
     ### Battery state
     # TODO simulate loss of capacity and battery management considering degradation
     battery_change = battery_Input - battery_Output
-    if battery_charge < -battery_change :
-        raise Exception(f"Flat battery at {t}")
+    if battery_charge < -battery_change : # We need more energy than the battery can give
+        print("Flat Battery")
     battery_charge = min(battery_charge + battery_change , Battery_capacity_max)
 
     ###
     Bat_charge.append(battery_charge)
 
-    if t == 10000000 or t == 20000000:
-        plt.plot(range(len(Bat_charge)),Bat_charge)
-        plt.show()
 
 
 fig = plt.figure()
