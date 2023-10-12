@@ -74,7 +74,7 @@ Battery_capacity_max = 4 * 3.7 * 2.6 * 3600 # in Ws
 
 ###############
 Start_battery_level = 1 # In percent
-Run_time = 1000000 # in seconds
+Run_time = 10000000 # in seconds
 df_eclipse = importation("Eclipse_data.csv")
 
 
@@ -102,7 +102,7 @@ for t in time[1:]:
     ### Battery Output
     # Load power need
     # TODO real load calculation
-    load_power_need = 7.55
+    load_power_need = 15
 
     # Battery Output
     battery_Output = load_power_need / output_efficiency(load_power_need / 5) # We assume that the load use only 5V for max efficiency
@@ -113,6 +113,15 @@ for t in time[1:]:
     battery_change = battery_Input - battery_Output
     if battery_charge < -battery_change : # We need more energy than the battery can give
         print("Flat Battery")
+        fig = plt.figure()
+        plt.subplot(2,1,1)
+        plt.plot(time[1:t+1],Bat_charge)
+        plt.title("Battery charge over time")
+        plt.xlabel("time (in second)")
+        plt.ylabel("Battery charge")
+        plt.ylim(0,Battery_capacity_max)
+        plt.show()
+        exit()
     battery_charge = min(battery_charge + battery_change , Battery_capacity_max)
 
     ###
