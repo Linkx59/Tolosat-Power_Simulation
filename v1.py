@@ -2,6 +2,8 @@ import math
 import pandas as pd
 import matplotlib.pyplot as plt
 
+import constante as cs
+
 
 #######################################################################
 # Input efficiency
@@ -53,6 +55,7 @@ def importation(file_link):
     return df
 
 #####################################
+# Module finished
 class Eclipse:
     def __init__(self,number,start,duration):
         Eclipse.number = number
@@ -61,6 +64,7 @@ class Eclipse:
         Eclipse.duration = duration
 
 def eclipse_duration_converter(text):
+    print(type(text))
     l = text.split()
     hms = l[2].split(":")
     return (int(hms[0]) * 60 + int(hms[1])) * 60 + int(hms[2])
@@ -69,24 +73,23 @@ def get_eclipse(df,eclipse_number):
     return Eclipse(eclipse_number,int(df_eclipse["seconds"][eclipse_number]),eclipse_duration_converter(df_eclipse["duration"][eclipse_number]))
 
 ###############
-Battery_capacity_max = 4 * 3.7 * 2.6 * 3600 # in Ws
+
 
 
 ###############
 Start_battery_level = 1 # In percent
-Run_time = 10000000 # in seconds
+Run_time = 1000 # in seconds
 df_eclipse = importation("Eclipse_data.csv")
 
 
 current_eclipse = get_eclipse(df_eclipse, 0)
-battery_charge = Start_battery_level * Battery_capacity_max
+battery_charge = Start_battery_level * cs.BatteryCapacity_StartOfMission
 
 time = range(Run_time)
 Bat_charge = [battery_charge]
 
 
 for t in time[1:]:
-    print(t)
     ### Battery input 
     # Solar power available
     if t > current_eclipse.end: # Update the eclipse if it has ended
@@ -119,10 +122,10 @@ for t in time[1:]:
         plt.title("Battery charge over time")
         plt.xlabel("time (in second)")
         plt.ylabel("Battery charge")
-        plt.ylim(0,Battery_capacity_max)
+        plt.ylim(0,cs.BatteryCapacity_StartOfMission)
         plt.show()
         exit()
-    battery_charge = min(battery_charge + battery_change , Battery_capacity_max)
+    battery_charge = min(battery_charge + battery_change , cs.BatteryCapacity_StartOfMission)
 
     ###
     Bat_charge.append(battery_charge)
@@ -135,5 +138,5 @@ plt.plot(time,Bat_charge)
 plt.title("Battery charge over time")
 plt.xlabel("time (in second)")
 plt.ylabel("Battery charge")
-plt.ylim(0,Battery_capacity_max)
+plt.ylim(0,cs.BatteryCapacity_StartOfMission)
 plt.show()
